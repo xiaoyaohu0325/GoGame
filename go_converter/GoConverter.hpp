@@ -64,10 +64,10 @@ public:
      - illegal move locations are all-zero features
      */
     std::vector<shared_ptr<Plane>> CaptureSize(GoBoard& board);
+    
+    int NumOfCaptured(GoBoard& board, SgPoint pt);
 private:
     shared_ptr<Plane> zero();
-    
-    int numOfCaptured(GoBoard& board, SgPoint pt);
 };
 
 #endif /* GoConverter_hpp */

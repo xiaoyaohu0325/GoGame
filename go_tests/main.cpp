@@ -44,14 +44,6 @@ bool init_unit_test()
     return true;
 }
 
-//boost::unit_test::test_suite* init_unit_test_suite( int argc, char* argv[] )
-//{
-//    boost::unit_test::test_suite* test = BOOST_TEST_SUITE( "Master test suite" );
-//    
-//    test->add( BOOST_TEST_CASE( &init_unit_test ) );
-//    
-//    return test;
-//}
 
 GTEST_API_ int main(int argc, char **argv) {
     init_unit_test();

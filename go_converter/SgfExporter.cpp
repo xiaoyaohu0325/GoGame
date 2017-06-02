@@ -43,6 +43,10 @@ SgfExporter::~SgfExporter() {
     }
 }
 
+GoBoard* SgfExporter::Board() const {
+    return board;
+}
+
 void SgfExporter::ToPNG(std::string &outputFile) {
     
 }

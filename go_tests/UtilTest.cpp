@@ -18,11 +18,3 @@ TEST(PointConverterTest, convert)
     EXPECT_EQ(col, 'p' - 'a'); // 15
     EXPECT_EQ(row, 'd' - 'a'); // 3
 }
-
-//#define BOOST_TEST_MAIN
-//#include <boost/test/unit_test.hpp>
-//
-//BOOST_AUTO_TEST_CASE(PointConverterTest)
-//{
-//    BOOST_CHECK_EQUAL(FromSGFLetter("pd"), 336);
-//}

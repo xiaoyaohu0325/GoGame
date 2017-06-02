@@ -10,6 +10,10 @@
 #include "SgBlackWhite.h"
 #include "PointConverter.h"
 
+GoConverter::GoConverter() {
+    
+}
+
 shared_ptr<Plane> GoConverter::zero()
 {
     shared_ptr<Plane> p( new Plane() );
@@ -111,7 +115,7 @@ std::vector<shared_ptr<Plane>> GoConverter::CaptureSize(GoBoard &board)
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        int captured = numOfCaptured(board, pt);
+        int captured = NumOfCaptured(board, pt);
         if (captured >= MAX_CAPTURE_SIZE - 1) {
             captured = MAX_CAPTURE_SIZE - 1;
         }
@@ -123,7 +127,7 @@ std::vector<shared_ptr<Plane>> GoConverter::CaptureSize(GoBoard &board)
     return vector;
 }
 
-int GoConverter::numOfCaptured(GoBoard& board, SgPoint pt)
+int GoConverter::NumOfCaptured(GoBoard& board, SgPoint pt)
 {
     SgBlackWhite player = board.ToPlay();
     if(!board.IsLegal(pt, player) || !board.CanCapture(pt, player)) {

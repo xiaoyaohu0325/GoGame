@@ -27,6 +27,7 @@ public:
     
     void ToPNG(std::string& outputFile);
     void ToText();
+    GoBoard* Board() const;
 private:
     GoBoard* board;
     std::vector<GoPlayerMove> moves;
