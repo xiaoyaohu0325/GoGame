@@ -21,6 +21,7 @@ using boost::shared_ptr;
 const int STONE_MAXIMUM_AGE = 8;
 const int MAX_LIBERTIES = 8;
 const int MAX_CAPTURE_SIZE = 8;
+const int MAX_SELF_ATARI_SIZE = 8;
 
 class GoConverter
 {
@@ -64,8 +65,15 @@ public:
      - illegal move locations are all-zero features
      */
     std::vector<shared_ptr<Plane>> CaptureSize(GoBoard& board);
+    /**
+     A feature encoding the size of the own-stone group that is put into atari by
+     playing at a location
+     */
+    std::vector<shared_ptr<Plane>> SelfAtariSize(GoBoard& board);
     
     int NumOfCaptured(GoBoard& board, SgPoint pt);
+    
+    int NumOfSelfInAtari(GoBoard& board, SgPoint pt);
 private:
     shared_ptr<Plane> zero();
 };

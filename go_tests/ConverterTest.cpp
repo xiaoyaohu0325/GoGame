@@ -34,6 +34,9 @@ protected:
 
 TEST_F(ConverterTest, CapturedSize) {
     EXPECT_TRUE(board != NULL);
+    board->TakeSnapshot();
+    
+    // try moving
     EXPECT_EQ(board->ToPlay(), SG_BLACK);
     
     EXPECT_EQ(converter.NumOfCaptured(*board, FromRowColumn(1, 13)), 1);
@@ -44,4 +47,25 @@ TEST_F(ConverterTest, CapturedSize) {
     
     EXPECT_EQ(converter.NumOfCaptured(*board, FromRowColumn(6, 3)), 1);
     EXPECT_EQ(converter.NumOfCaptured(*board, FromRowColumn(7, 4)), 4);
+    
+    board->RestoreSnapshot();
+}
+
+TEST_F(ConverterTest, SelfAtari) {
+    EXPECT_TRUE(board != NULL);
+    board->TakeSnapshot();
+    
+    // try moving
+    EXPECT_EQ(board->ToPlay(), SG_BLACK);
+    EXPECT_EQ(converter.NumOfSelfInAtari(*board, FromRowColumn(0, 6)), 2);
+    EXPECT_EQ(converter.NumOfSelfInAtari(*board, FromRowColumn(0, 8)), 2);
+    
+    board->Play(FromRowColumn(0, 0));
+    
+    // white to play
+    EXPECT_EQ(board->ToPlay(), SG_WHITE);
+    
+    EXPECT_EQ(converter.NumOfSelfInAtari(*board, FromRowColumn(1, 13)), 2);
+    
+    board->RestoreSnapshot();
 }

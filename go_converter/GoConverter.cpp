@@ -115,13 +115,15 @@ std::vector<shared_ptr<Plane>> GoConverter::CaptureSize(GoBoard &board)
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        int captured = NumOfCaptured(board, pt);
-        if (captured >= MAX_CAPTURE_SIZE - 1) {
-            captured = MAX_CAPTURE_SIZE - 1;
-        }
         int row = SgPointToRow(pt);
         int col = SgPointToCol(pt);
-        vector[captured]->board[row][col] = 1;
+        
+        int captured = NumOfCaptured(board, pt);
+        if (captured < MAX_CAPTURE_SIZE) {
+            vector[captured]->board[row][col] = 1;
+        } else {
+            vector[MAX_CAPTURE_SIZE - 1]->board[row][col] = 1;
+        }
     }
     
     return vector;
@@ -143,4 +145,47 @@ int GoConverter::NumOfCaptured(GoBoard& board, SgPoint pt)
         captured += board.NumStones(pointSet[i]);
     }
     return captured;
+}
+
+std::vector<shared_ptr<Plane>> GoConverter::SelfAtariSize(GoBoard &board)
+{
+    std::vector<shared_ptr<Plane>> vector = Zeros(MAX_SELF_ATARI_SIZE);
+    
+    SgPointSet pointSet = board.AllEmpty();
+    int size = pointSet.Size();
+    SgVector<SgPoint> sgVector;
+    pointSet.ToVector(&sgVector);
+    
+    for (int i = 0; i < size; i++) {
+        SgPoint pt = sgVector[i];
+        int numStones = NumOfSelfInAtari(board, pt);
+        if (numStones > 0) {
+            int row = SgPointToRow(pt);
+            int col = SgPointToCol(pt);
+            if (numStones < MAX_SELF_ATARI_SIZE) {
+                vector[numStones]->board[row][col] = 1;
+            } else {
+                vector[MAX_SELF_ATARI_SIZE - 1]->board[row][col] = 1;
+            }
+        }
+    }
+    
+    return vector;
+}
+
+int GoConverter::NumOfSelfInAtari(GoBoard& board, SgPoint pt)
+{
+    int count = 0;
+    // 找出在pt走子后使己方棋子只有一口气的情况
+    if (board.IsLegal(pt) &&
+        (board.HasNeighbors(pt, board.ToPlay()) ||
+        board.HasNeighbors(pt, board.Opponent()))) {
+        board.TakeSnapshot();
+        board.Play(pt);
+        if (board.NumLiberties(pt) == 1) {
+            count = board.NumStones(pt);
+        }
+        board.RestoreSnapshot();
+    }
+    return count;
 }
