@@ -22,6 +22,7 @@ const int STONE_MAXIMUM_AGE = 8;
 const int MAX_LIBERTIES = 8;
 const int MAX_CAPTURE_SIZE = 8;
 const int MAX_SELF_ATARI_SIZE = 8;
+const int MAX_LIBERTIES_AFTER = 8;
 
 class GoConverter
 {
@@ -29,6 +30,8 @@ public:
     GoConverter();
     
     void convert(std::string sfgFile);
+    
+    std::vector<shared_ptr<Plane>> Ones(int planes);
     
     std::vector<shared_ptr<Plane>> Zeros(int planes);
     /**
@@ -70,12 +73,37 @@ public:
      playing at a location
      */
     std::vector<shared_ptr<Plane>> SelfAtariSize(GoBoard& board);
+    /**
+     A feature encoding what the number of liberties *would be* of the group connected to
+     the stone *if* played at a location
+     
+     Note:
+     - there is no zero-liberties plane; the 0th plane indicates groups in atari
+     - the [maximum-1] plane is used for any stone with liberties greater than or equal to maximum
+     - illegal move locations are all-zero features
+     */
+    std::vector<shared_ptr<Plane>> LibertiesAfter(GoBoard& board);
+    /**
+     A feature wrapping is_ladder_capture
+     first result is for GOOD_FOR_HUNTER, ladder capture
+     second result is for GOOD_FOR_PREY, ladder escape
+     */
+    std::vector<shared_ptr<Plane>> LadderCapture(GoBoard& board);
+    /**
+     A move is 'sensible' if it is legal and if it does not fill the current_player's own eye
+     */
+    shared_ptr<Plane> Sensibleness(GoBoard& board);
+    /**
+     Zero at all illegal moves, one at all legal moves. Unlike sensibleness, no eye check is done
+     */
+    shared_ptr<Plane> LegalMoves(GoBoard& board);
     
     int NumOfCaptured(GoBoard& board, SgPoint pt);
     
     int NumOfSelfInAtari(GoBoard& board, SgPoint pt);
 private:
     shared_ptr<Plane> zero();
+    shared_ptr<Plane> one();
 };
 
 #endif /* GoConverter_hpp */
