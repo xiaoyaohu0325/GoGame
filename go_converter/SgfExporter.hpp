@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 
 #include "GoBoard.h"
 #include "GoSetup.h"
@@ -20,16 +21,17 @@
 #include "SgProp.h"
 #include "GoPlayerMove.h"
 
+using boost::shared_ptr;
+
 class SgfExporter {
 public:
     SgfExporter(std::string& sfgPath);
-    ~SgfExporter();
     
     void ToPNG(std::string& outputFile);
     void ToText();
-    GoBoard* Board() const;
+    shared_ptr<GoBoard> Board() const;
 private:
-    GoBoard* board;
+    shared_ptr<GoBoard> board;
     std::vector<GoPlayerMove> moves;
     int size;
     GoSetup goSetup;

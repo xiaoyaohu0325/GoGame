@@ -11,8 +11,8 @@
 #include "SgBlackWhite.h"
 #include "PointConverter.h"
 
-GoConverter::GoConverter() {
-    
+GoConverter::GoConverter(shared_ptr<GoBoard> board) {
+    m_board = board;
 }
 
 shared_ptr<Plane> GoConverter::zero()
@@ -55,18 +55,18 @@ std::vector<shared_ptr<Plane>> GoConverter::Ones(int planes) {
     return vector;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::BoardState(GoBoard& board)
+std::vector<shared_ptr<Plane>> GoConverter::BoardState()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(3); //0. current 1. opponent 2.empty
-    SgBlackWhite currentPlayer = board.ToPlay();
+    SgBlackWhite currentPlayer = m_board->ToPlay();
     for (int i = 0; i < GO_DEFAULT_SIZE; i++) { // row
         for (int j = 0; j < GO_DEFAULT_SIZE; j++) { // column
             SgPoint pt = FromRowColumn(i, j);
-            if(board.IsEmpty(pt)) {
+            if(m_board->IsEmpty(pt)) {
                 (vector[0])->board[i][j] = 0;
                 (vector[1])->board[i][j] = 0;
                 (vector[2])->board[i][j] = 1;
-            } else if(board.IsColor(pt, currentPlayer)) {
+            } else if(m_board->IsColor(pt, currentPlayer)) {
                 (vector[0])->board[i][j] = 1;
                 (vector[1])->board[i][j] = 0;
                 (vector[2])->board[i][j] = 0;
@@ -81,15 +81,15 @@ std::vector<shared_ptr<Plane>> GoConverter::BoardState(GoBoard& board)
     return vector;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::TurnsSince(GoBoard &board)
+std::vector<shared_ptr<Plane>> GoConverter::TurnsSince()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(STONE_MAXIMUM_AGE);
-    int moveNum = board.MoveNumber();
+    int moveNum = m_board->MoveNumber();
     int age = 0;
     
     for (int i = moveNum - 1; i >= 0; i--)
     {
-        GoPlayerMove move = board.Move(i);
+        GoPlayerMove move = m_board->Move(i);
         SgPoint pt = move.Point();
         int row = SgPointToRow(pt);
         int col = SgPointToCol(pt);
@@ -104,15 +104,15 @@ std::vector<shared_ptr<Plane>> GoConverter::TurnsSince(GoBoard &board)
     return vector;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::Liberties(GoBoard &board)
+std::vector<shared_ptr<Plane>> GoConverter::Liberties()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(MAX_LIBERTIES);
     
     for (int i = 0; i < GO_DEFAULT_SIZE; i++) { // row
         for (int j = 0; j < GO_DEFAULT_SIZE; j++) { // column
             SgPoint pt = FromRowColumn(i, j);
-            if(!board.IsEmpty(pt)) {
-                int liberties = board.NumLiberties(pt);
+            if(!m_board->IsEmpty(pt)) {
+                int liberties = m_board->NumLiberties(pt);
                 if (liberties >= MAX_LIBERTIES) {
                     vector[MAX_LIBERTIES - 1]->board[i][j] = 1;
                 } else {
@@ -125,11 +125,11 @@ std::vector<shared_ptr<Plane>> GoConverter::Liberties(GoBoard &board)
     return vector;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::CaptureSize(GoBoard &board)
+std::vector<shared_ptr<Plane>> GoConverter::CaptureSize()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(MAX_CAPTURE_SIZE);
     
-    SgPointSet pointSet = board.AllEmpty();
+    SgPointSet pointSet = m_board->AllEmpty();
     int size = pointSet.Size();
     SgVector<SgPoint> sgVector;
     pointSet.ToVector(&sgVector);
@@ -139,7 +139,7 @@ std::vector<shared_ptr<Plane>> GoConverter::CaptureSize(GoBoard &board)
         int row = SgPointToRow(pt);
         int col = SgPointToCol(pt);
         
-        int captured = NumOfCaptured(board, pt);
+        int captured = NumOfCaptured(pt);
         if (captured < MAX_CAPTURE_SIZE) {
             vector[captured]->board[row][col] = 1;
         } else {
@@ -150,36 +150,36 @@ std::vector<shared_ptr<Plane>> GoConverter::CaptureSize(GoBoard &board)
     return vector;
 }
 
-int GoConverter::NumOfCaptured(GoBoard& board, SgPoint pt)
+int GoConverter::NumOfCaptured(SgPoint pt)
 {
-    SgBlackWhite player = board.ToPlay();
-    if(!board.IsLegal(pt, player) || !board.CanCapture(pt, player)) {
+    SgBlackWhite player = m_board->ToPlay();
+    if(!m_board->IsLegal(pt, player) || !m_board->CanCapture(pt, player)) {
         return 0;
     }
     SgPoint pointSet[5] = {SG_ENDPOINT, SG_ENDPOINT, SG_ENDPOINT, SG_ENDPOINT, SG_ENDPOINT};
-    board.NeighborBlocks(pt, board.Opponent(), 1, pointSet);
+    m_board->NeighborBlocks(pt, m_board->Opponent(), 1, pointSet);
     int captured = 0;
     for (int i=0; i<5; i++) {
         if (pointSet[i] == SG_ENDPOINT) {
             break;
         }
-        captured += board.NumStones(pointSet[i]);
+        captured += m_board->NumStones(pointSet[i]);
     }
     return captured;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::SelfAtariSize(GoBoard &board)
+std::vector<shared_ptr<Plane>> GoConverter::SelfAtariSize()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(MAX_SELF_ATARI_SIZE);
     
-    SgPointSet pointSet = board.AllEmpty();
+    SgPointSet pointSet = m_board->AllEmpty();
     int size = pointSet.Size();
     SgVector<SgPoint> sgVector;
     pointSet.ToVector(&sgVector);
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        int numStones = NumOfSelfInAtari(board, pt);
+        int numStones = NumOfSelfInAtari(pt);
         if (numStones > 0) {
             int row = SgPointToRow(pt);
             int col = SgPointToCol(pt);
@@ -194,24 +194,24 @@ std::vector<shared_ptr<Plane>> GoConverter::SelfAtariSize(GoBoard &board)
     return vector;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::LibertiesAfter(GoBoard &board)
+std::vector<shared_ptr<Plane>> GoConverter::LibertiesAfter()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(MAX_LIBERTIES_AFTER);
     
-    SgPointSet pointSet = board.AllEmpty();
+    SgPointSet pointSet = m_board->AllEmpty();
     int size = pointSet.Size();
     SgVector<SgPoint> sgVector;
     pointSet.ToVector(&sgVector);
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        if(!board.IsLegal(pt, board.ToPlay())) {
+        if(!m_board->IsLegal(pt, m_board->ToPlay())) {
             continue;
         }
-        board.TakeSnapshot();
-        board.Play(pt);
+        m_board->TakeSnapshot();
+        m_board->Play(pt);
         
-        int liberties = board.NumLiberties(pt);
+        int liberties = m_board->NumLiberties(pt);
         if (liberties > 0) {
             int row = SgPointToRow(pt);
             int col = SgPointToCol(pt);
@@ -222,87 +222,87 @@ std::vector<shared_ptr<Plane>> GoConverter::LibertiesAfter(GoBoard &board)
             }
         }
         
-        board.RestoreSnapshot();
+        m_board->RestoreSnapshot();
     }
     
     return vector;
 }
 
-int GoConverter::NumOfSelfInAtari(GoBoard& board, SgPoint pt)
+int GoConverter::NumOfSelfInAtari(SgPoint pt)
 {
     int count = 0;
     // 找出在pt走子后使己方棋子只有一口气的情况
-    if (board.IsLegal(pt) &&
-        (board.HasNeighbors(pt, board.ToPlay()) ||
-        board.HasNeighbors(pt, board.Opponent()))) {
-        board.TakeSnapshot();
-        board.Play(pt);
-        if (board.NumLiberties(pt) == 1) {
-            count = board.NumStones(pt);
+    if (m_board->IsLegal(pt) &&
+        (m_board->HasNeighbors(pt, m_board->ToPlay()) ||
+        m_board->HasNeighbors(pt, m_board->Opponent()))) {
+        m_board->TakeSnapshot();
+        m_board->Play(pt);
+        if (m_board->NumLiberties(pt) == 1) {
+            count = m_board->NumStones(pt);
         }
-        board.RestoreSnapshot();
+        m_board->RestoreSnapshot();
     }
     return count;
 }
 
-std::vector<shared_ptr<Plane>> GoConverter::LadderCapture(GoBoard& board)
+std::vector<shared_ptr<Plane>> GoConverter::LadderCapture()
 {
     std::vector<shared_ptr<Plane>> vector = Zeros(2);
     
-    SgPointSet pointSet = board.AllEmpty();
+    SgPointSet pointSet = m_board->AllEmpty();
     int size = pointSet.Size();
     SgVector<SgPoint> sgVector;
     pointSet.ToVector(&sgVector);
     
-    SgBlackWhite currentPlayer = board.ToPlay();
+    SgBlackWhite currentPlayer = m_board->ToPlay();
     SgBlackWhite opponentPlayer = SgOppBW(currentPlayer);
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        if(!board.IsLegal(pt, currentPlayer)) {
+        if(!m_board->IsLegal(pt, currentPlayer)) {
             continue;
         }
         // Find neighbors with only one liberty
         SgPoint pointSet[5] = {SG_ENDPOINT, SG_ENDPOINT, SG_ENDPOINT, SG_ENDPOINT, SG_ENDPOINT};
-        board.NeighborBlocks(pt, currentPlayer, 1, pointSet);
+        m_board->NeighborBlocks(pt, currentPlayer, 1, pointSet);
         
         if (pointSet[0] != SG_ENDPOINT) {
             int row = SgPointToRow(pt);
             int col = SgPointToCol(pt);
-            board.TakeSnapshot();
-            board.Play(pt);
+            m_board->TakeSnapshot();
+            m_board->Play(pt);
             
             GoLadder ladder;
-            int result = ladder.Ladder(board, pt, opponentPlayer, NULL);
+            int result = ladder.Ladder(*m_board, pt, opponentPlayer, NULL);
             if (result > 0) { // Good for prey
                 vector[1]->board[row][col] = 1;
             } else if (result < 0) { // Good for hunter
                 vector[0]->board[row][col] = 1;
             }
             
-            board.RestoreSnapshot();
+            m_board->RestoreSnapshot();
         }
     }
     return vector;
 }
 
-shared_ptr<Plane> GoConverter::Sensibleness(GoBoard& board)
+shared_ptr<Plane> GoConverter::Sensibleness()
 {
     shared_ptr<Plane> plane = zero();
     
-    SgPointSet pointSet = board.AllEmpty();
+    SgPointSet pointSet = m_board->AllEmpty();
     int size = pointSet.Size();
     SgVector<SgPoint> sgVector;
     pointSet.ToVector(&sgVector);
     
-    SgBlackWhite currentPlayer = board.ToPlay();
+    SgBlackWhite currentPlayer = m_board->ToPlay();
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        if(!board.IsLegal(pt, currentPlayer)) {
+        if(!m_board->IsLegal(pt, currentPlayer)) {
             continue;
         }
-        if (!GoEyeUtil::IsPossibleEye(board, currentPlayer, pt)) {
+        if (!GoEyeUtil::IsPossibleEye(*m_board, currentPlayer, pt)) {
             int row = SgPointToRow(pt);
             int col = SgPointToCol(pt);
             plane->board[row][col] = 1;
@@ -312,20 +312,20 @@ shared_ptr<Plane> GoConverter::Sensibleness(GoBoard& board)
     return plane;
 }
 
-shared_ptr<Plane> GoConverter::LegalMoves(GoBoard& board)
+shared_ptr<Plane> GoConverter::LegalMoves()
 {
     shared_ptr<Plane> plane = zero();
     
-    SgPointSet pointSet = board.AllEmpty();
+    SgPointSet pointSet = m_board->AllEmpty();
     int size = pointSet.Size();
     SgVector<SgPoint> sgVector;
     pointSet.ToVector(&sgVector);
     
-    SgBlackWhite currentPlayer = board.ToPlay();
+    SgBlackWhite currentPlayer = m_board->ToPlay();
     
     for (int i = 0; i < size; i++) {
         SgPoint pt = sgVector[i];
-        if(board.IsLegal(pt, currentPlayer)) {
+        if(m_board->IsLegal(pt, currentPlayer)) {
             int row = SgPointToRow(pt);
             int col = SgPointToCol(pt);
             plane->board[row][col] = 1;

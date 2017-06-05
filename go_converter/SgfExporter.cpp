@@ -28,7 +28,7 @@ SgfExporter::SgfExporter(std::string& sfgPath) {
             node = node->LeftMostSon();
         }
         sgfFile.close();
-        board = new GoBoard(size, goSetup, goRules);
+        board = shared_ptr<GoBoard>(new GoBoard(size, goSetup, goRules));
         std::vector<GoPlayerMove>::iterator iter;
         
         for (iter = moves.begin(); iter != moves.end(); ++iter) {
@@ -37,13 +37,7 @@ SgfExporter::SgfExporter(std::string& sfgPath) {
     }
 }
 
-SgfExporter::~SgfExporter() {
-    if (board != NULL){
-        delete board;
-    }
-}
-
-GoBoard* SgfExporter::Board() const {
+shared_ptr<GoBoard> SgfExporter::Board() const {
     return board;
 }
 

@@ -27,7 +27,7 @@ const int MAX_LIBERTIES_AFTER = 8;
 class GoConverter
 {
 public:
-    GoConverter();
+    GoConverter(shared_ptr<GoBoard> board);
     
     void convert(std::string sfgFile);
     
@@ -38,14 +38,14 @@ public:
      * A feature encoding WHITE BLACK and EMPTY on separate planes, but plane 0
      * always refers to the current player and plane 1 to the opponent
      */
-    std::vector<shared_ptr<Plane>> BoardState(GoBoard& board);
+    std::vector<shared_ptr<Plane>> BoardState();
     /**
      A feature encoding the age of the stone at each location up to 'maximum'
      Note:
      - the [maximum-1] plane is used for any stone with age greater than or equal to maximum
      - EMPTY locations are all-zero features
      */
-    std::vector<shared_ptr<Plane>> TurnsSince(GoBoard& board);
+    std::vector<shared_ptr<Plane>> TurnsSince();
     /**
      A feature encoding the number of liberties of the group connected to the stone at
      each location
@@ -55,7 +55,7 @@ public:
      - the [maximum-1] plane is used for any stone with liberties greater than or equal to maximum
      - EMPTY locations are all-zero features
      */
-    std::vector<shared_ptr<Plane>> Liberties(GoBoard& board);
+    std::vector<shared_ptr<Plane>> Liberties();
     /**
      A feature encoding the number of opponent stones that would be captured by
      playing at each location, up to 'maximum'
@@ -67,12 +67,12 @@ public:
      - the 0th plane is used for legal moves that would not result in capture
      - illegal move locations are all-zero features
      */
-    std::vector<shared_ptr<Plane>> CaptureSize(GoBoard& board);
+    std::vector<shared_ptr<Plane>> CaptureSize();
     /**
      A feature encoding the size of the own-stone group that is put into atari by
      playing at a location
      */
-    std::vector<shared_ptr<Plane>> SelfAtariSize(GoBoard& board);
+    std::vector<shared_ptr<Plane>> SelfAtariSize();
     /**
      A feature encoding what the number of liberties *would be* of the group connected to
      the stone *if* played at a location
@@ -82,26 +82,28 @@ public:
      - the [maximum-1] plane is used for any stone with liberties greater than or equal to maximum
      - illegal move locations are all-zero features
      */
-    std::vector<shared_ptr<Plane>> LibertiesAfter(GoBoard& board);
+    std::vector<shared_ptr<Plane>> LibertiesAfter();
     /**
      A feature wrapping is_ladder_capture
      first result is for GOOD_FOR_HUNTER, ladder capture
      second result is for GOOD_FOR_PREY, ladder escape
      */
-    std::vector<shared_ptr<Plane>> LadderCapture(GoBoard& board);
+    std::vector<shared_ptr<Plane>> LadderCapture();
     /**
      A move is 'sensible' if it is legal and if it does not fill the current_player's own eye
      */
-    shared_ptr<Plane> Sensibleness(GoBoard& board);
+    shared_ptr<Plane> Sensibleness();
     /**
      Zero at all illegal moves, one at all legal moves. Unlike sensibleness, no eye check is done
      */
-    shared_ptr<Plane> LegalMoves(GoBoard& board);
+    shared_ptr<Plane> LegalMoves();
     
-    int NumOfCaptured(GoBoard& board, SgPoint pt);
+    int NumOfCaptured(SgPoint pt);
     
-    int NumOfSelfInAtari(GoBoard& board, SgPoint pt);
+    int NumOfSelfInAtari(SgPoint pt);
 private:
+    shared_ptr<GoBoard> m_board;
+    
     shared_ptr<Plane> zero();
     shared_ptr<Plane> one();
 };
