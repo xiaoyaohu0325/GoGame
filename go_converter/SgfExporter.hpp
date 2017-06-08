@@ -27,9 +27,11 @@ class SgfExporter {
 public:
     SgfExporter(std::string& sfgPath);
     
+    void PlayToEnd();
     void ToPNG(std::string& outputFile);
     void ToText();
     shared_ptr<GoBoard> Board() const;
+    std::vector<GoPlayerMove> Moves() const;
 private:
     shared_ptr<GoBoard> board;
     std::vector<GoPlayerMove> moves;

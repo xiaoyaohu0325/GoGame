@@ -29,12 +29,19 @@ SgfExporter::SgfExporter(std::string& sfgPath) {
         }
         sgfFile.close();
         board = shared_ptr<GoBoard>(new GoBoard(size, goSetup, goRules));
-        std::vector<GoPlayerMove>::iterator iter;
-        
-        for (iter = moves.begin(); iter != moves.end(); ++iter) {
-            board->Play(*iter);
-        }
     }
+}
+
+void SgfExporter::PlayToEnd() {
+    std::vector<GoPlayerMove>::iterator iter;
+    
+    for (iter = moves.begin(); iter != moves.end(); ++iter) {
+        board->Play(*iter);
+    }
+}
+
+std::vector<GoPlayerMove> SgfExporter::Moves() const {
+    return moves;
 }
 
 shared_ptr<GoBoard> SgfExporter::Board() const {
